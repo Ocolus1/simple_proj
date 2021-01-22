@@ -1,17 +1,20 @@
 import React from 'react';
 import { Jumbotron, Button, Container } from 'react-bootstrap';
-import Navigation from '../components/Navigation';
-import { Link } from 'react-router-dom';
-import styles from "../css/home.module.css"
+import { Link, Redirect } from 'react-router-dom';
+import styles from "../css/home.module.css";
+import { connect } from "react-redux";
 
-function Home(props) {
+function Home({isAuthenticated}) {
     let smile = {
         'fontSize': 40
+    }
+
+    if (isAuthenticated) {
+        return <Redirect to="/main" />
     }
     return (
         <div className={styles.home_page}>
             <Container>
-                <Navigation />
                 <Jumbotron className="shadow-lg p-3 mb-5 mt-4 bg-white rounded">
                     <h3>Welcome to the Learning Center!<span style={smile}>&#128540;</span></h3>
                     <p>
@@ -36,4 +39,8 @@ function Home(props) {
     );
 }
 
-export default Home;
+const mapStateToProps = state => ({
+    isAuthenticated: state.auth.isAuthenticated,
+})
+
+export default connect(mapStateToProps, { })(Home);

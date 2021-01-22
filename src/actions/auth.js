@@ -11,11 +11,14 @@ import {
     PASSWORD_RESET_FAIL,
     PASSWORD_RESET_CONFIRM_SUCCESS,
     PASSWORD_RESET_CONFIRM_FAIL,
+    ACTIVATION_SUCCESS,
+    ACTIVATION_FAIL,
     LOGOUT,
     SET_MESSAGE
 } from "./types"
 
 import axios from "axios";
+
 
 export const checkAuthenticated = () => async dispatch => {
     if (localStorage.getItem("access")) {
@@ -99,27 +102,39 @@ export const login = (data) => async dispatch => {
         const res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/jwt/create/`, body, config);
         dispatch({
             type: LOGIN_SUCCESS,
-            payload: res.data
+            payload: res
         })
         dispatch(load_user());
         alert("Login successful")
+        return res.statusText
     } catch (err) {
         const message = err.message;
         dispatch({
             type: LOGIN_FAIL,
             payload: message,
         })
+        return message
     }
 };
 
-export const register = (email, username, password, re_password, is_student, is_teacher) => async dispatch => {
+export const signup = (data) => async dispatch => {
     const config = {
         headers: {
             "Content-Type": "application/json"
         }
     };
+    const dat = data;
+    if (dat["user_type"] === "student") {
+        dat["is_student"] = true
+        dat["is_teacher"] = !dat["is_student"]
+        delete dat["user_type"]
+    } else if (dat["user_type"] === "teacher") {
+        dat["is_student"] = false
+        dat["is_teacher"] = !dat["is_student"]
+        delete dat["user_type"]
+    }
 
-    const body = JSON.stringify({ email, username, password, re_password, is_student, is_teacher });
+    const body = JSON.stringify(dat);
 
     try {
         const res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/users/`, body, config);
@@ -127,34 +142,54 @@ export const register = (email, username, password, re_password, is_student, is_
             type: REGISTRATION_SUCCESS,
             payload: res.data
         })
-        dispatch({
-            type: SET_MESSAGE,
-            payload: res.data.message,
-        });
+        console.log(res.data)
+        return res.statusText
     } catch (err) {
+        const message = err.message;
         dispatch({
             type: REGISTRATION_FAIL
         })
-        const message =
-            (err.response && err.response.data && err.response.data.message) ||
-            err.message ||
-            err.toString();
-        dispatch({
-            type: SET_MESSAGE,
-            payload: message,
-        });
+        console.log(message)
+        return message
     }
 };
 
 
-export const reset_password = (email) => async dispatch => {
+export const verify = (data) => async dispatch => {
     const config = {
         headers: {
             "Content-Type": "application/json"
         }
     };
 
-    const body = JSON.stringify({ email });
+    const body = JSON.stringify(data);
+
+    try {
+        let res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/users/activation/`, body, config);
+        dispatch({
+            type: ACTIVATION_SUCCESS,
+        })
+        alert("Your account is successfully activated")
+        return res.status
+    }catch (err) {
+        dispatch({
+            type: ACTIVATION_FAIL
+        })
+        console.log(err)
+        return err.message
+    }
+}
+
+
+export const reset_password = (data) => async dispatch => {
+    const config = {
+        headers: {
+            "Content-Type": "application/json"
+        }
+    };
+
+    const body = JSON.stringify(data);
+    console.log(body)
 
     try {
         const res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/users/reset_password/`, body, config);
@@ -162,33 +197,26 @@ export const reset_password = (email) => async dispatch => {
         dispatch({
             type: PASSWORD_RESET_SUCCESS
         })
-        dispatch({
-            type: SET_MESSAGE,
-            payload: res.data.message,
-        });
+        alert("Url sent to mail successfully")
+        return res.status
     } catch (err) {
+        const message = err.message;
         dispatch({
             type: PASSWORD_RESET_FAIL
         })
-        const message =
-            (err.response && err.response.data && err.response.data.message) ||
-            err.message ||
-            err.toString();
-        dispatch({
-            type: SET_MESSAGE,
-            payload: message,
-        });
+        return message
     }
 }
 
-export const reset_password_confirm = (uid, token, new_password, re_new_password) => async dispatch => {
+export const reset_password_confirm = (datas) => async dispatch => {
     const config = {
         headers: {
             "Content-Type": "application/json"
         }
     };
 
-    const body = JSON.stringify({ uid, token, new_password, re_new_password });
+    const body = JSON.stringify(datas);
+    console.log(body)
 
     try {
         const res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/users/reset_password_confirm/`, body, config);
@@ -196,23 +224,14 @@ export const reset_password_confirm = (uid, token, new_password, re_new_password
         dispatch({
             type: PASSWORD_RESET_CONFIRM_SUCCESS
         })
-        dispatch({
-            type: SET_MESSAGE,
-            payload: res.data.message,
-        });
-        
+        alert("Password successfully changed")
+        return res.status
     } catch (err) {
+        const message = err.message;
         dispatch({
             type: PASSWORD_RESET_CONFIRM_FAIL
         })
-        const message =
-            (err.response && err.response.data && err.response.data.message) ||
-            err.message ||
-            err.toString();
-        dispatch({
-            type: SET_MESSAGE,
-            payload: message,
-        });
+        return message;
     }
 }
 

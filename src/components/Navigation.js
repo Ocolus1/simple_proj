@@ -32,7 +32,7 @@ function Navigation({ logout, user}) {
                                 <Link to="/login">
                                     <Button variant="outline-success" className="mx-1">Sign In</Button>
                                 </Link>
-                                <Link to="/register">
+                                <Link to="/signup">
                                     <Button variant="info" className="mx-1">Sign Up</Button>
                                 </Link>
                             </>

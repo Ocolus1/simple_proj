@@ -1,12 +1,17 @@
 import React from 'react'
 import { Container } from 'react-bootstrap'
-import MainNav from '../components/MainNav'
+import { connect } from "react-redux";
+import { Redirect } from 'react-router-dom';
 
-export default function Main() {
+
+function Main({ isAuthenticated }) {
+    if(!isAuthenticated) {
+        return <Redirect to="/" />
+    }
+
     return (
         <div>
             <Container>
-                <MainNav />
                 <div>
                     The main page
                 </div>
@@ -14,3 +19,9 @@ export default function Main() {
         </div>
     )
 }
+
+const mapStateToProps = state => ({
+    isAuthenticated: state.auth.isAuthenticated,
+})
+
+export default connect(mapStateToProps, { })(Main);
