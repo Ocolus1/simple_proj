@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { connect } from "react-redux";
 import { Link, Redirect } from 'react-router-dom';
-import { get_all_posts} from "../services/user.services"
+import { get_all_posts, get_comment_count} from "../services/user.services"
 import six from "../img/six.jpg"
 
 function Newsletter({ access }) {
     const [posts, setPosts] = useState([])
+    const [comment, setComment] = useState()
+
 
 
     useEffect(() => {
@@ -50,6 +52,11 @@ function Newsletter({ access }) {
         return data.toDateString()
     }
 
+    const comment_count = async (e) => {
+        let result = await get_comment_count(e)
+        setComment(result.data)
+    }
+
     if(!access) {
         return <Redirect to="/" />
     }
@@ -65,7 +72,7 @@ function Newsletter({ access }) {
                 </div>
                 <div className="card-group p-5">
                     {posts.map((post) => (
-                        <div key={post.id} className="card p-4 border-0">
+                        <div key={post.id} onLoad={comment_count(post.id)} className="card p-4 border-0">
                             <img src={post.thumbnail} style={thumbnail} className="card-img-top" alt="..." />
                             <div className="card-body">
                                 <Link  to={`/blog/${post.id}`} className="text-decoration-none" target="_blank">
@@ -75,7 +82,7 @@ function Newsletter({ access }) {
                                 </Link>
                                 <div className="py-3">
                                     Posted on <span className="text-muted pb-0">{convertDate(post.timestamp)}</span><br />
-                                    Comments <span className="text-muted pt-0">4</span><br />
+                                    Comments <span className="text-muted pt-0">{comment}</span><br />
                                 </div>
                                 <div className="text-muted">
                                     {post.content.substring(3, 200)}

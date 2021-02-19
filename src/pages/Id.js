@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { connect } from 'react-redux';
 import { Link, Redirect } from 'react-router-dom';
-import { get_one_post, get_author } from "../services/user.services"
+import { get_one_post, get_author, get_comment_count } from "../services/user.services"
 import { get_all_posts, add_view, get_cat, post_author } from "../services/user.services"
 import six from "../img/six.jpg"
 
@@ -10,6 +10,7 @@ function Id({ access, match}) {
     const [post, setPost] = useState([])
     const [cat, setCat] = useState([])
     const [view, setView] = useState()
+    const [comment, setComment] = useState()
     const [author, setAuthor] = useState([])
     const [post_auth, setPostAuth] = useState([])
     // const regex = /(<([^>]+)>)/ig;
@@ -94,6 +95,11 @@ function Id({ access, match}) {
                 setView(res.data)
             }
         )
+        get_comment_count(id).then(
+            (res) => {
+                setComment(res.data)
+            }
+        )
         
     }, [id])
 
@@ -155,7 +161,7 @@ function Id({ access, match}) {
                                 <div className="d-flex align-items-center flex-wrap">
                                     <div className="date m-2"><i className="far fa-clock"></i> {convertDate(post.timestamp)}</div><span className="text-muted">|</span>
                                     <div className="views m-2"><i className="far fa-eye"></i> {view}</div><span className="text-muted">|</span>
-                                    <div className="comments meta-last m-2"><i className="far fa-comments me-2"></i>4</div>
+                                    <div className="comments meta-last m-2"><i className="far fa-comments me-2"></i>{comment}</div>
                                 </div>
                                 </div>
                                 
