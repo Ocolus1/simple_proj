@@ -14,7 +14,12 @@ import {
     ACTIVATION_SUCCESS,
     ACTIVATION_FAIL,
     LOGOUT,
-    SET_MESSAGE
+    SUBSCRIPTION_SUCCESS,
+    SUBSCRIPTION_FAIL,
+    USER_UPDATE_SUCCESS,
+    UPDATE_PROFILE_PICTURE_SUCCESS,
+    UPDATE_PROFILE_PICTURE_FAIL,
+    USER_UPDATE_FAIL
 } from "./types"
 
 import axios from "axios";
@@ -38,23 +43,11 @@ export const checkAuthenticated = () => async dispatch => {
                 dispatch({
                     type: AUTHENTICATED_SUCCESS
                 })
-                dispatch({
-                    type: SET_MESSAGE,
-                    payload: res.data.message,
-                });
             }
         } catch (err) {
-            const message =
-                (err.response && err.response.data && err.response.data.message) ||
-                err.message ||
-                err.toString();
             dispatch({
                 type: AUTHENTICATED_FAIL
             })
-            dispatch({
-                type: SET_MESSAGE,
-                payload: message,
-            });
         }
     } else {
         dispatch({
@@ -86,6 +79,71 @@ export const load_user = () => async dispatch => {
     } else {
         dispatch({
             type: USER_LOADED_FAIL
+        })
+    }
+};
+
+
+export const update_user = (data) => async dispatch => {
+    if (localStorage.getItem("access")) {
+        const config = {
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': `JWT ${localStorage.getItem("access")}`,
+                "Accept": "application/json"
+            }
+        };
+        const body = JSON.stringify(data);
+        try {
+            const res = await axios.patch(`${process.env.REACT_APP_API_URL}/auth/users/me/`, body, config);
+            dispatch({
+                type: USER_UPDATE_SUCCESS,
+                payload: res.data
+            })
+            return res.status
+        } catch (err) {
+            const message = err.message;
+            dispatch({
+                type: USER_UPDATE_FAIL
+            })
+            return message
+        }
+    } else {
+        dispatch({
+            type: USER_UPDATE_FAIL
+        })
+    }
+};
+
+export const update_picture = (data) => async dispatch => {
+    if (localStorage.getItem("access")) {
+        const config = {
+            headers: {
+                'Authorization': `JWT ${localStorage.getItem("access")}`,
+            }
+        };
+        const formdata = new FormData()
+        formdata.append("profile_pic", data.profile_pic[0])
+        const body = formdata;
+        try {
+            const res = await axios.patch(`${process.env.REACT_APP_API_URL}/auth/users/me/`, body, config);
+            dispatch({
+                type: UPDATE_PROFILE_PICTURE_SUCCESS,
+                payload: res.data
+            })
+            return res.status
+        } catch (err) {
+            const message = err.message;
+            dispatch({
+                type: UPDATE_PROFILE_PICTURE_FAIL,
+
+            })
+            return message
+        }
+    } else {
+        dispatch({
+            type: UPDATE_PROFILE_PICTURE_FAIL,
+
         })
     }
 };
@@ -174,6 +232,33 @@ export const verify = (data) => async dispatch => {
     }catch (err) {
         dispatch({
             type: ACTIVATION_FAIL
+        })
+        console.log(err)
+        return err.message
+    }
+}
+
+export const newsletter = (data) => async dispatch => {
+    const config = {
+        headers: {
+            "Content-Type": "application/json",
+            'Authorization': `JWT ${localStorage.getItem("access")}`,
+        }
+    };
+
+    const body = JSON.stringify(data);
+
+    try {
+        
+        let res = await axios.post(`${process.env.REACT_APP_API_URL}/api/news/letter/`, body, config);
+        dispatch({
+            type: SUBSCRIPTION_SUCCESS,
+        })
+        alert("Your have subscribe to our newsletter successfully")
+        return res.status
+    }catch (err) {
+        dispatch({
+            type: SUBSCRIPTION_FAIL
         })
         console.log(err)
         return err.message

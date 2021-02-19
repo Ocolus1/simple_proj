@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import { connect } from "react-redux";
 import {checkAuthenticated, load_user} from "../actions/auth"
+import Footer from '../components/Footer';
 import Navigation from '../components/Navigation';
 
 function Layout(props) {
@@ -17,6 +18,8 @@ function Layout(props) {
             <Navigation />  
                 
             {props.children}
+
+            <Footer />
         </div>
     )
 }

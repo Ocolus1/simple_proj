@@ -4,7 +4,8 @@ import { Link, Redirect } from 'react-router-dom';
 import styles from "../css/home.module.css";
 import { connect } from "react-redux";
 
-function Home({isAuthenticated}) {
+
+function Home({isAuthenticated }) {
     let smile = {
         'fontSize': 40
     }
@@ -20,7 +21,7 @@ function Home({isAuthenticated}) {
                     <p>
                         If you already have an account, go ahead and <Link to="/login">log in</Link>.
                             If you are new to Leaning Center,
-                            get started by creating an <Link to="/register">account</Link>.
+                            get started by creating an <Link to="/signup">account</Link>.
                         </p>
                     <p>
                         This is an application created for the department of IESA. It can be used for
@@ -39,7 +40,7 @@ function Home({isAuthenticated}) {
     );
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state, ownProps) => ({
     isAuthenticated: state.auth.isAuthenticated,
 })
 

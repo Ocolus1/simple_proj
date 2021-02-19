@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Button, Container, Form, Alert } from 'react-bootstrap';
+import { Button, Container, Form} from 'react-bootstrap';
 import { connect } from "react-redux";
 import { login } from "../actions/auth"
 import { useForm } from "react-hook-form";
@@ -8,20 +8,31 @@ import { Link, Redirect } from "react-router-dom";
 
 function Login({ login, isAuthenticated }) {
     const { register, errors, handleSubmit } = useForm();
-    const [show, setShow] = useState(false);
-    const [suc,  setSuc] = useState(false);
-    const [networkError, setNetworkError] = useState(false)
-    const [internalError, setInternalError] = useState(false)
+    const [show, setShow] = useState({display: "none"});
+    const [suc,  setSuc] = useState({display: "none"});
+    const [networkError, setNetworkError] = useState({display: "none"})
+    const [internalError, setInternalError] = useState({display: "none"})
+    const [see, setSee] = useState(true)
+    const [color, setColor] = useState("black")
 
     const red = {
         color: "red"
+    }
+
+    const toogleSee = () => {
+        setSee(!see)
+        if (see === false){
+            setColor("black")
+        }else{
+            setColor("#0275d8")
+        }
     }
 
     const onSubmit = async (data) => {
         login(data).then(
             (res) => {
                 if (res === "Network Error") {
-                    setNetworkError(true)
+                    setNetworkError({display: "block"})
                 }
                 checkMessages(res)
             }
@@ -52,52 +63,55 @@ function Login({ login, isAuthenticated }) {
     }
 
     const danger = (
-          <Alert show={show} variant="danger" onClose={() => setShow(false)} dismissible>
-            <Alert.Heading>User credentials incorrect!</Alert.Heading>
-                <p>
-                    Your username or password is incorrect. Try again.
-                </p>
-          </Alert>
-        );
+        <div className="alert alert-danger alert-dismissible fade show" style={show} role="alert">
+            <h5>User credentials incorrect!</h5>
+            <p>Your username or password is incorrect. Try again.</p>
+            <button type="button" onClick={() => setShow({display: "none"})} className="btn-close" ></button>
+        </div>
+    )
     
     const internalErr = (
-        <Alert show={internalError} variant="danger" onClose={() => setInternalError(false)} dismissible>
-            <Alert.Heading>Internal Server Error</Alert.Heading>
-                <p>
-                    There is a fault in the backend.<br />
-                    Contact Admin to fix this problem.
-                </p>
-        </Alert>
+        <div className="alert alert-danger alert-dismissible fade show" style={internalError} role="alert">
+            <h5>Internal Server Error</h5>
+            <p>
+                There is a fault in the backend.<br />
+                Contact Admin to fix this problem.
+            </p>
+            <button type="button" onClick={() => setInternalError({display: "none"})} className="btn-close" ></button>
+        </div>
     );
 
     const netError = (
-          <Alert show={networkError} variant="danger" onClose={() => setNetworkError(false)} dismissible>
-            <Alert.Heading>Network Error</Alert.Heading>
+            <div className="alert alert-danger alert-dismissible fade show" style={networkError} role="alert">
+                <h5>Network Error</h5>
                 <p>
                     There is something wrong with the connection.<br />
                     The problem is with us not you.
                 </p>
-          </Alert>
+                <button type="button" onClick={() => setNetworkError({display: "none"})} className="btn-close" ></button>
+            </div>
         );
 
     const success = (
-          <Alert show={suc} variant="success" onClose={() => setSuc(false)} dismissible>
-            <Alert.Heading>User credentials correct!</Alert.Heading>
+            <div className="alert alert-danger alert-dismissible fade show" style={suc} role="alert">
+                <h5>User credentials correct!</h5>
                 <p>
                     You have logged in successfully.
                 </p>
-          </Alert>
+                <button type="button" onClick={() => setSuc({display: "none"})} className="btn-close" ></button>
+            </div>
         );
+    
 
     const checkMessages = (res) => {
         if (res === "Request failed with status code 401") {
-            setShow(true)
+            setShow({display: "block"})
         }else if (res === "OK") {
-            setShow(false)
-            setSuc(true)
+            setShow({display: "none"})
+            setSuc({display: "block"})
         }else if (res === "Request failed with status code 500") {
-            setInternalError(true)
-        }
+                    setInternalError({display: "block"})
+                }
     }
     
     // if user is authenticated
@@ -115,28 +129,37 @@ return (
                     {success}
                     {netError}
                     {internalErr}
-                    <Form.Group controlId="formBasicEmail">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control type="email" ref={register({
-                            required: "This field is required"
-                        })}
-                            name="email" className="col-sm-4"
-                            placeholder="Enter your email" />
-                        <span style={red}> {errors.email?.message} </span>
+                    <Form.Group  className="row mb-3 p-3" >
+                        <div className="col-md-4">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control type="email" ref={register({
+                                required: "This field is required"
+                            })}
+                                name="email" className="col-md-4"
+                                placeholder="Enter your email" />
+                            <span style={red}> {errors.email?.message} </span>
+                        </div>
                     </Form.Group>
-                    <Form.Group controlId="formBasicPassword">
-                        <Form.Label>Password</Form.Label>
-                        <Form.Control type="password" ref={register({
-                            required: "This field is required"
-                        })}
-                            name="password" className="col-sm-4"
-                            placeholder="Password" />
-                        <span style={red}>{errors.password?.message}</span>
+                    <Form.Group className="row mb-4 p-3">
+                        <div className="col-md-4">
+                            <Form.Label>Passwords<br /> </Form.Label>
+                            <div className="position-relative">
+                                <Form.Control type={ see ? "password" : "text" } ref={register({
+                                    required: "This field is required"
+                                })}
+                                    name="password" className="col-sm-4"
+                                    placeholder="Password" />
+                                <div className="position-absolute top-0 end-0 mt-2 pe-3">
+                                    <i className="fa fa-eye" onClick={toogleSee} style={{color: color}}></i>
+                                </div>
+                                <span style={red}>{errors.password?.message}</span>
+                            </div>
+                        </div>
                     </Form.Group>
-
-                    <Button variant="primary" type="submit"
+                    
+                    <Button variant="primary" className="m-3" type="submit"
                     >
-                        Submit
+                        Login
                     </Button>
                 </div>
             </Form>

@@ -3,14 +3,13 @@ import { Redirect } from "react-router-dom";
 import { connect } from "react-redux";
 import { reset_password_confirm } from "../actions/auth"
 import { useForm } from "react-hook-form";
-import { Alert } from 'react-bootstrap';
 
-function ResetPasswordConfirm({ match, reset_password_confirm }) {
+function ResetPasswordConfirm({ match, reset_password_confirm, isAuthenticated }) {
     const [requestSent, setRequestSent] = useState(false);
     const { register, handleSubmit} = useForm();
-    const [show, setShow] = useState(false);
-    const [networkError, setNetworkError] = useState(false)
-    const [internalError, setInternalError] = useState(false)
+    const [show, setShow] = useState({display: "none"});
+    const [networkError, setNetworkError] = useState({display: "none"})
+    const [internalError, setInternalError] = useState({display: "none"})
 
 
     const onSubmit = async (data) => {
@@ -28,15 +27,15 @@ function ResetPasswordConfirm({ match, reset_password_confirm }) {
                 //checkRegistration
                 console.log(res)
                 if (res === 204) {
-                    setRequestSent(true)
+                    setRequestSent({display: "block"})
                 }else if (res === "Request failed with status code 400") {
-                    setShow(true)
+                    setShow({display: "block"})
                 }else if (res === "Network Error") {
-                    setNetworkError(true)
+                    setNetworkError({display: "block"})
                 }else if (res === "Request failed with status code 500") {
-                    setInternalError(true)
+                    setInternalError({display: "block"})
                 }else {
-                    setShow(true)
+                    setShow({display: "block"})
                 }
 
             }
@@ -44,38 +43,43 @@ function ResetPasswordConfirm({ match, reset_password_confirm }) {
     }
 
     const danger = (
-        <Alert show={show} variant="danger" onClose={() => setShow(false)} dismissible>
-          <Alert.Heading>User credentials incorrect!</Alert.Heading>
-              <p>
-                  Your username or password is incorrect. Try again.
-              </p>
-        </Alert>
-      );
-
-  const netError = (
-        <Alert show={networkError} variant="danger" onClose={() => setNetworkError(false)} dismissible>
-          <Alert.Heading>Network Error</Alert.Heading>
-              <p>
-                  There is something wrong with the connection.<br />
-                  The problem is with us not you.
-              </p>
-        </Alert>
-      );
-
+        <div className="alert alert-danger alert-dismissible fade show" style={show} role="alert">
+            <h5>User credentials incorrect!</h5>
+            <p>Your username or password is incorrect. Try again.</p>
+            <button type="button" onClick={() => setShow({display: "none"})} className="btn-close" ></button>
+        </div>
+    )
+    
     const internalErr = (
-    <Alert show={internalError} variant="danger" onClose={() => setInternalError(false)} dismissible>
-        <Alert.Heading>Internal Server Error</Alert.Heading>
+        <div className="alert alert-danger alert-dismissible fade show" style={internalError} role="alert">
+            <h5>Internal Server Error</h5>
             <p>
                 There is a fault in the backend.<br />
                 Contact Admin to fix this problem.
             </p>
-    </Alert>
+            <button type="button" onClick={() => setInternalError({display: "none"})} className="btn-close" ></button>
+        </div>
     );
+
+    const netError = (
+            <div className="alert alert-danger alert-dismissible fade show" style={networkError} role="alert">
+                <h5>Network Error</h5>
+                <p>
+                    There is something wrong with the connection.<br />
+                    The problem is with us not you.
+                </p>
+                <button type="button" onClick={() => setNetworkError({display: "none"})} className="btn-close" ></button>
+            </div>
+        );
 
     //is user Authenticated 
     //redirect them to the homepage
     if (requestSent) {
         return <Redirect to="/" />
+    }
+
+    if (isAuthenticated) {
+        return <Redirect to="/main" />
     }
 
     return (
@@ -115,4 +119,8 @@ function ResetPasswordConfirm({ match, reset_password_confirm }) {
 }
 
 
-export default connect(null, { reset_password_confirm })(ResetPasswordConfirm);
+const mapStateToProps = state => ({
+    isAuthenticated: state.auth.isAuthenticated,
+})
+
+export default connect(mapStateToProps, { reset_password_confirm })(ResetPasswordConfirm);

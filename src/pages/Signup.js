@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { Button, Container, Form, Col, Alert } from 'react-bootstrap';
+import { Button, Container, Form, Col } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { connect } from "react-redux";
 import { signup } from "../actions/auth"
 import validator from "validator"
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 
-function Signup({ signup }) {
+function Signup({ signup, isAuthenticated }) {
     const { register, errors, getValues, handleSubmit } = useForm();
-    const [show, setShow] = useState(false);
-    const [suc,  setSuc] = useState(false);
-    const [userExist, setUserExist] = useState(false);
-    const [networkError, setNetworkError] = useState(false)
-    const [internalError, setInternalError] = useState(false)
+    const [show, setShow] = useState({display: "none"});
+    const [suc,  setSuc] = useState({display: "none"});
+    const [userExist, setUserExist] = useState({display: "none"});
+    const [networkError, setNetworkError] = useState({display: "none"})
+    const [internalError, setInternalError] = useState({display: "none"})
 
     const red = {
         color: "red"
@@ -24,20 +24,20 @@ function Signup({ signup }) {
             (res) => {
                 //checkRegistration
                 if (res === "Created") {
-                    setSuc(true)
-                    setShow(false)
-                    setUserExist(false)
+                    setSuc({display: "block"})
+                    setShow({display: "none"})
+                    setUserExist({display: "none"})
                 }else if (res === "Request failed with status code 400") {
-                    setShow(false)
-                    setSuc(false)
-                    setUserExist(true)
+                    setShow({display: "none"})
+                    setSuc({display: "none"})
+                    setUserExist({display: "block"})
                 }else if (res === "Network Error") {
-                    setNetworkError(true)
+                    setNetworkError({display: "block"})
                 }else if (res === "Request failed with status code 500") {
-                    setInternalError(true)
+                    setInternalError({display: "block"})
                 }else {
-                    setShow(true)
-                    setSuc(false)
+                    setShow({display: "block"})
+                    setSuc({display: "none"})
                 }
 
             }
@@ -45,65 +45,71 @@ function Signup({ signup }) {
     }
 
     const danger = (
-        <Alert show={show} variant="danger" onClose={() => setShow(false)} dismissible>
-          <Alert.Heading>User credentials incorrect!</Alert.Heading>
-              <p>
-                  User registration was not successful. Try again.
-              </p>
-        </Alert>
-      );
+        <div className="alert alert-danger alert-dismissible fade show" style={show} role="alert">
+            <h5>User credentials incorrect!</h5>
+            <p>Your username or password is incorrect. Try again.</p>
+            <button type="button" onClick={() => setShow({display: "none"})} className="btn-close" ></button>
+        </div>
+    )
     
     const internalErr = (
-    <Alert show={internalError} variant="danger" onClose={() => setInternalError(false)} dismissible>
-        <Alert.Heading>Internal Server Error</Alert.Heading>
+        <div className="alert alert-danger alert-dismissible fade show" style={internalError} role="alert">
+            <h5>Internal Server Error</h5>
             <p>
                 There is a fault in the backend.<br />
                 Contact Admin to fix this problem.
             </p>
-    </Alert>
+            <button type="button" onClick={() => setInternalError({display: "none"})} className="btn-close" ></button>
+        </div>
     );
 
     const netError = (
-    <Alert show={networkError} variant="danger" onClose={() => setNetworkError(false)} dismissible>
-        <Alert.Heading>Network Error</Alert.Heading>
-            <p>
-                There is something wrong with the connection.<br />
-                The problem is with us not you.
-            </p>
-    </Alert>
-    );
+            <div className="alert alert-danger alert-dismissible fade show" style={networkError} role="alert">
+                <h5>Network Error</h5>
+                <p>
+                    There is something wrong with the connection.<br />
+                    The problem is with us not you.
+                </p>
+                <button type="button" onClick={() => setNetworkError({display: "none"})} className="btn-close" ></button>
+            </div>
+        );
 
-    const isUser = (
-        <Alert show={userExist} variant="danger" onClose={() => setUserExist(false)} dismissible>
-          <Alert.Heading>User credentials incorrect!</Alert.Heading>
-              <p>
-                  The email already exists. Try another one.
-              </p>
-        </Alert>
-      );
+    const success = (
+            <div className="alert alert-success alert-dismissible fade show" style={suc} role="alert">
+                <h5>An Email has been sent to you!</h5>
+                <p>
+                    Check your mail to activate your account.
+                </p>
+                <button type="button" onClick={() => setSuc({display: "none"})} className="btn-close" ></button>
+            </div>
+        );
+      
+      const isUser = (
+            <div className="alert alert-danger alert-dismissible fade show" style={userExist} role="alert">
+                <h5>User credentials incorrect!</h5>
+                <p>
+                    The email already exists. Try another one.
+                </p>
+                <button type="button" onClick={() => setUserExist({display: "none"})} className="btn-close" ></button>
+            </div>
+        );
 
-  const success = (
-        <Alert show={suc} variant="success" onClose={() => setSuc(false)} dismissible>
-          <Alert.Heading>User credentials correct!</Alert.Heading>
-              <p>
-                  User registered successfully.<br />
-                  Check your mail to activate your account within the next 24hours.
-              </p>
-        </Alert>
-      );
+      if (isAuthenticated) {
+        return <Redirect to="/main" />
+    }
 
     return (
         <div>
             <Container>
                 <Form onSubmit={handleSubmit(onSubmit)} className="shadow-lg p-3 mb-5 mt-4 bg-white rounded">
                     <div className="pl-5 pt-2 pb-5">
-                        <h3 className="p-2 mx-1">Sign Up</h3>
+                        <h3 className="p-3 mx-1">Sign Up</h3>
                         {danger}
                         {success}
                         {isUser}
                         {netError}
                         {internalErr}
-                        <Form.Row className="my-2">
+                        <Form.Row className="row my-2 mb-2 p-3">
                             <Form.Group as={Col} controlId="formBasicName">
                                 <Form.Label>Username</Form.Label>
                                 <Form.Control type="text" ref={register({
@@ -113,7 +119,7 @@ function Signup({ signup }) {
                                         message: 'Minimum of 8 character length' 
                                     }
                                 })} 
-                                name="username" className="" placeholder="Enter username" />
+                                name="username" className="col-sm-12 col-md-6" placeholder="Enter username" />
                                 <span style={red}> {errors.username?.message} </span>
                             </Form.Group>
 
@@ -129,7 +135,7 @@ function Signup({ signup }) {
                                         message: 'Minimum of 8 character length' 
                                     }
                                 })}  
-                                name="email" className="" placeholder="Enter email" />
+                                name="email" className="col-sm-12 col-md-6" placeholder="Enter email" />
                                 <span style={red}> {errors.email?.message} </span>
                                 {errors.email?.type === "emailVal" && (
                                 <span style={red}>Enter a valid email address.</span>
@@ -137,7 +143,7 @@ function Signup({ signup }) {
                             </Form.Group>
                         </Form.Row>
 
-                        <Form.Row className="my-2">
+                        <Form.Row className="row my-2 mb-2 p-3">
                             <Form.Group as={Col} controlId="formBasicPassword">
                                 <Form.Label>Password</Form.Label>
                                 <Form.Control type="password" ref={register({
@@ -147,7 +153,7 @@ function Signup({ signup }) {
                                         message: 'Minimum of 8 character length' 
                                     }
                                 })}  
-                                name="password" className="" placeholder="Password" />
+                                name="password" className="col-sm-12 col-md-6" placeholder="Password" />
                                 <span style={red}> {errors.password?.message} </span>
                             </Form.Group>
 
@@ -168,31 +174,31 @@ function Signup({ signup }) {
                                     }
                                     
                                 })}  
-                                name="re_password" className="" placeholder="Confirm Password" />
+                                name="re_password" className="col-sm-12 col-md-6" placeholder="Confirm Password" />
                             <span style={red}> {errors.re_password?.message} </span>
                             </Form.Group>
                         </Form.Row>
 
-                        <Form.Row >
+                        <Form.Row className="row mb-2 p-3">
                             <Form.Group as={Col} controlId="formGridState">
                                 <Form.Label>User Type</Form.Label>
-                                <Form.Control as="select" ref={register({
-                                    required: "This field is required",
-                                    validate: {
-                                        useInput: (value) => value !== "" || "This field is required"
-                                    }
-                                })}  
-                                name="user_type" defaultValue="Choose...">
+                                <select className="form-select" ref={register({
+                                        required: "This field is required",
+                                        validate: {
+                                            useInput: (value) => value !== "" || "This field is required"
+                                        }
+                                    })}  
+                                    name="user_type" defaultValue="Choose...">
                                     <option value="">Choose....</option>
                                     <option value="student">Student</option>
                                     <option value="teacher">Teacher</option>
-                                </Form.Control>
+                                </select>
                             <span style={red}> {errors.user_type?.message} </span>
                             </Form.Group>
                         </Form.Row>
 
-                        <Button variant="primary" className="m-2" type="submit">
-                            Submit
+                        <Button variant="primary" className="m-3" type="submit">
+                            Register
                         </Button>
                     </div>
                 </Form>
@@ -204,5 +210,9 @@ function Signup({ signup }) {
     )
 }
 
+const mapStateToProps = state => ({
+    isAuthenticated: state.auth.isAuthenticated,
+})
 
-export default connect(null, { signup })(Signup);
+
+export default connect(mapStateToProps, { signup })(Signup);

@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import {  Redirect } from "react-router-dom";
 import { connect } from "react-redux";
 import { verify } from "../actions/auth"
-import { Alert } from 'react-bootstrap';
 
 
-function Activate({ verify, match }) {
+function Activate({ verify, match, isAuthenticated }) {
     const [verified, setVerified] = useState(false)
-    const [show, setShow] = useState(false)
-    const [networkError, setNetworkError] = useState(false)
-    const [internalError, setInternalError] = useState(false)
+    const [show, setShow] = useState({display: "none"});
+    const [networkError, setNetworkError] = useState({display: "none"})
+    const [internalError, setInternalError] = useState({display: "none"})
 
     const verify_account = e => {
         const uid = match.params.uid;
@@ -24,11 +23,11 @@ function Activate({ verify, match }) {
                 if (res === 204){
                     setVerified(true)
                 }else if (res === "Network Error") {
-                    setNetworkError(true)
+                    setNetworkError({display: "block"})
                 }else if (res === "Request failed with status code 400") {
-                    setShow(true)
+                    setShow({display: "block"})
                 }else if (res === "Request failed with status code 500") {
-                    setInternalError(true)
+                    setInternalError({display: "block"})
                 }
             }
         )
@@ -36,38 +35,43 @@ function Activate({ verify, match }) {
     }
 
     const danger = (
-        <Alert show={show} variant="danger" onClose={() => setShow(false)} dismissible>
-          <Alert.Heading>Something went wrong!</Alert.Heading>
-              <p>
-                  Contact Admin to resolve this issue.
-              </p>
-        </Alert>
-      );
-
-    const netError = (
-    <Alert show={networkError} variant="danger" onClose={() => setNetworkError(false)} dismissible>
-        <Alert.Heading>Network Error</Alert.Heading>
-            <p>
-                There is something wrong with the connection.<br />
-                The problem is with us not you.
-            </p>
-    </Alert>
-    );
-
+        <div className="alert alert-danger alert-dismissible fade show" style={show} role="alert">
+            <h5>User credentials incorrect!</h5>
+            <p>Your username or password is incorrect. Try again.</p>
+            <button type="button" onClick={() => setShow({display: "none"})} className="btn-close" ></button>
+        </div>
+    )
+    
     const internalErr = (
-    <Alert show={internalError} variant="danger" onClose={() => setInternalError(false)} dismissible>
-        <Alert.Heading>Internal Server Error</Alert.Heading>
+        <div className="alert alert-danger alert-dismissible fade show" style={internalError} role="alert">
+            <h5>Internal Server Error</h5>
             <p>
                 There is a fault in the backend.<br />
                 Contact Admin to fix this problem.
             </p>
-    </Alert>
+            <button type="button" onClick={() => setInternalError({display: "none"})} className="btn-close" ></button>
+        </div>
     );
+
+    const netError = (
+            <div className="alert alert-danger alert-dismissible fade show" style={networkError} role="alert">
+                <h5>Network Error</h5>
+                <p>
+                    There is something wrong with the connection.<br />
+                    The problem is with us not you.
+                </p>
+                <button type="button" onClick={() => setNetworkError({display: "none"})} className="btn-close" ></button>
+            </div>
+        );
 
     //is user Authenticated 
     //redirect them to the homepage
     if (verified){
         return <Redirect to="/" />
+    }
+
+    if (isAuthenticated) {
+        return <Redirect to="/main" />
     }
 
     return (
@@ -93,6 +97,8 @@ function Activate({ verify, match }) {
     )
 }
 
+const mapStateToProps = state => ({
+    isAuthenticated: state.auth.isAuthenticated,
+})
 
-
-export default connect(null, { verify })(Activate);
+export default connect(mapStateToProps, { verify })(Activate);

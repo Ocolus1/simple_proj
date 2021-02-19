@@ -13,6 +13,12 @@ import {
     PASSWORD_RESET_CONFIRM_FAIL,
     ACTIVATION_SUCCESS,
     ACTIVATION_FAIL,
+    SUBSCRIPTION_SUCCESS,
+    SUBSCRIPTION_FAIL,
+    USER_UPDATE_SUCCESS,
+    USER_UPDATE_FAIL,
+    UPDATE_PROFILE_PICTURE_SUCCESS,
+    UPDATE_PROFILE_PICTURE_FAIL,
     LOGOUT
 } from "../actions/types"
 
@@ -20,7 +26,7 @@ const initialState = {
     access: localStorage.getItem('access'),
     refresh: localStorage.getItem('refresh'),
     isAuthenticated: null,
-    user: null,
+    user: localStorage.getItem('user'),
     message: null
 };
 
@@ -48,15 +54,20 @@ export default function auth(state = initialState, action) {
                 isAuthenticated: false
             }
         case USER_LOADED_SUCCESS:
+        case USER_UPDATE_SUCCESS:
+            localStorage.setItem('user', payload);
             return {
                 ...state,
                 user: payload
             }
         case LOGIN_FAIL:
         case REGISTRATION_FAIL:
+        case AUTHENTICATED_FAIL:
+        case USER_LOADED_FAIL:
         case LOGOUT:
             localStorage.removeItem("access")
             localStorage.removeItem("refresh")
+            localStorage.removeItem("user")
             return {
                 ...state,
                 isAuthenticated: false,
@@ -65,22 +76,28 @@ export default function auth(state = initialState, action) {
                 user: null,
                 message: payload
             }
-        case AUTHENTICATED_FAIL:
-            return {
-                ...state,
-                isAuthenticated: false
-            }
-        case USER_LOADED_FAIL:
-            return {
-                ...state,
-                user: null
-            }
+        // case AUTHENTICATED_FAIL:
+        //     return {
+        //         ...state,
+        //         isAuthenticated: false
+        //     }
+        // case USER_LOADED_FAIL:
+        //     return {
+        //         ...state,
+        //         user: null,
+        //         isAuthenticated: false
+        //     }
         case PASSWORD_RESET_SUCCESS:
         case PASSWORD_RESET_FAIL:
         case PASSWORD_RESET_CONFIRM_SUCCESS:
         case PASSWORD_RESET_CONFIRM_FAIL:
         case ACTIVATION_SUCCESS:
         case ACTIVATION_FAIL:
+        case SUBSCRIPTION_SUCCESS:
+        case SUBSCRIPTION_FAIL:
+        case USER_UPDATE_FAIL:
+        case UPDATE_PROFILE_PICTURE_SUCCESS:
+        case UPDATE_PROFILE_PICTURE_FAIL:
             return {
                 ...state
             }
