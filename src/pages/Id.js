@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from 'react'
 import { connect } from 'react-redux';
 import { Link, Redirect } from 'react-router-dom';
-import { get_one_post, get_author, get_comment_count } from "../services/user.services"
-import { get_all_posts, add_view, get_cat, post_author } from "../services/user.services"
+import { get_one_post, get_author, get_comment_count, add_comment } from "../services/user.services"
+import { get_all_posts, add_view, get_cat, post_author, get_comments, get_user } from "../services/user.services"
 import six from "../img/six.jpg"
+import { useForm } from 'react-hook-form';
+import PostSideBar from '../components/PostSideBar';
 
 
-function Id({ access, match}) {
+function Id({ access, match, currentUser}) {
     const [post, setPost] = useState([])
     const [cat, setCat] = useState([])
     const [view, setView] = useState()
-    const [comment, setComment] = useState()
+    const [comment, setComment] = useState([])
+    const [userComment, setUserComment] = useState([])
     const [author, setAuthor] = useState([])
     const [post_auth, setPostAuth] = useState([])
+    const [user, setUser] = useState([])
     // const regex = /(<([^>]+)>)/ig;
     const [posts, setPosts] = useState([])
+    const { register, handleSubmit } = useForm();
+
 
     useEffect(() => {
         get_all_posts().then(
@@ -100,8 +106,30 @@ function Id({ access, match}) {
                 setComment(res.data)
             }
         )
-        
+        get_comments(id).then(
+            (res) => {
+                setUserComment(res.data)
+            }
+        )
+        get_user().then(
+            (res) => {
+                setUser(res.data)
+            }
+        )
     }, [id])
+
+    const onSubmit = (data) => {
+        data["id"] = id
+        add_comment(data).then(
+            (res) => {
+                console.log(res)
+                if (res === "Comment posted successfully") {
+                    window.location.reload();
+                    alert(`${currentUser.username} commented`)
+                }
+            }
+        )
+    }
 
 
     const convertDate = (e) => {
@@ -222,38 +250,57 @@ function Id({ access, match}) {
                                 </div>
                             </div>
                         </div>
+                        <div className="m-4 post-comments">
+                            <header>
+                                <h3 class="h6 py-3">Post Comments<span class="no-of-comments">({comment})</span></h3>
+                            </header>
+                            {userComment.map((userComm) => (
+                                <div class="comment" key={userComm.id}>
+                                    <div class="comment-header d-flex justify-content-between">
+                                        {user.filter(us => us.id === userComm.user).map((us) => (
+                                            <div class="user d-flex align-items-center">
+                                                <div class="image">
+                                                    <img width={30}
+                                                        height={15}
+                                                        className="img-fluid rounded-circle"
+                                                        src={us.profile_pic}
+                                                        alt="Avatar" />
+                                                </div>
+                                                <div class="title ms-1">
+                                                    <strong>{us.username}</strong>
+                                                    <span class="date text-black-50 ms-2">{convertDate(userComm.timestamp)}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div class="comment-body ms-3 mb-3  mt-1 d-inline-flex p-2 bd-highlight">
+                                        <p className="text-black-50">{userComm.context}.</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div class="add-comment mx-3">
+                            <header>
+                                <h3 class="h6">Leave a reply</h3>
+                            </header>
+                            <form onSubmit={handleSubmit(onSubmit)}  class="commenting-form">
+                                <div class="row">
+                                    <div class="form-group col-md-12">
+                                        <div class="mb-3">
+                                            <textarea class="form-control" required
+                                            name="context" ref={register}
+                                            id="comment_area" rows="3"></textarea>    
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <button type="submit" class="btn btn-secondary text-uppercase">Post Comment</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                     <div className="col-3">
-                        <div className="pt-3">
-                            <h2 className="pt-3">Recent News</h2>
-                            <div className="shadow p-3 mb-4 bg-white rounded">
-                                {posts.slice(0, 3).map((post) => (
-                                    <div>
-                                        <div key={post.id} className="row pt-2">
-                                            <div className="col-4">
-                                            <img
-                                                className="d-block w-100"
-                                                height="40px"
-                                                width="100%"
-                                                src={post.thumbnail}
-                                                alt="slide"
-                                            />
-                                            </div>
-                                            <div className="col-8 ps-0">
-                                                <Link  to={`/blog/${post.id}`} 
-                                                className="text-decoration-none" target="_blank">
-                                                    <h5 className="card-title">
-                                                        {post.title}    
-                                                    </h5>
-                                                </Link>
-                                            </div>
-                                        </div>
-                                        <hr />
-                                    </div>
-                                ))}
-                                
-                            </div>
-                        </div>
+                        <PostSideBar />
                     </div>
                 </div>
             </div>
@@ -263,6 +310,8 @@ function Id({ access, match}) {
 
 const mapStateToProps = state => ({
     access: state.auth.access,
+    currentUser: state.auth.user
 })
+
 
 export default connect(mapStateToProps, { })(Id);
